@@ -1,7 +1,11 @@
 # -*- coding:utf-8 -*-
 
 import requests
+import re
 from bs4 import BeautifulSoup
+
+
+PTT_BEAUTY_URL = "https://www.ptt.cc/bbs/Beauty/index.html"
 
 
 class PTTSpider(object):
@@ -45,8 +49,14 @@ class PTTSpider(object):
                 "url": "" if url is None else url['href']
             }
 
-    def get_content(self, index):
-        pass
+    def get_content(self, url):
+        text = self.__get_page_source(url)
+        soup = BeautifulSoup(text, 'lxml')
+        contents = soup.find_all('a', href=True)
+        for content in contents:
+            r = re.search("^(https).*(jpg)$", content['href'])
+            if r:
+                print(content['href'])
 
     def __get_page_source(self, url):
         if not self.is_ptt_alive():
@@ -69,8 +79,7 @@ def main():
         print("ptt is off line")
         return
 
-    for board in ptt.get_boards():
-        print(board)
+    ptt.get_content("https://www.ptt.cc/bbs/Beauty/M.1521625110.A.6F4.html")
 
 
 if __name__ == '__main__':
