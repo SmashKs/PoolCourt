@@ -2,6 +2,9 @@
 
 import requests
 import re
+import os
+import datetime
+import time
 from bs4 import BeautifulSoup
 
 
@@ -12,42 +15,41 @@ class PTTSpider(object):
     def __init__(self):
         self.PTT_URL = "https://www.ptt.cc"
         self.PTT_INDEX_URL = "https://www.ptt.cc/bbs/index.html"
-        self.__boards = None
+        self.__max_lists = 20
+        self.__hot_level = 0
+        self.__list_content = None
 
-    def get_boards(self):
-        text = self.__get_page_source(self.PTT_INDEX_URL)
-        if text is None:
-            return None
-
+    def next_page(self, url):
+        text = self.__get_page_source(url)
         soup = BeautifulSoup(text, 'lxml')
-        boards = soup.find_all('div', 'b-ent')
-        for board in boards:
-            board_url = board.find('a', href=True)
-            board_name = board.find('div', 'board-name')
-            board_title = board.find('div', 'board-title')
-            board_class = board.find('div', 'board-class')
-            board_user = board.find('div', 'board-nuser')
-            yield {
-                'name': board_name.text,
-                'title': board_title.text,
-                'class': board_class.text,
-                'users': board_user.text,
-                'url': self.PTT_URL + board_url['href']
-            }
+        s = soup.find("div", "btn-group btn-group-paging")
+        tags = s.find_all('a', href=True)
+        for tag in tags:
+            if tag.text.strip() == '‹ 上頁':
+                return self.PTT_URL + "/" + tag['href']
 
     def get_lists(self, board_url):
         text = self.__get_page_source(board_url)
         soup = BeautifulSoup(text, 'lxml')
         titles = soup.find_all('div', 'r-ent')
         for t in titles:
-            title = t.find('div', "title")
-            hot_level = t.find('div', 'nrec')
+            title = t.find('div', "title").text.strip()
+            hot_level = t.find('div', 'nrec').text.strip()
+            if hot_level == '爆':
+                hot_level = '100'
             url = t.find('a', href=True)
-            yield {
-                "title": title.text.strip(),
-                "hot_level": str(0 if len(hot_level.text) == 0 else hot_level.text),
-                "url": "" if url is None else url['href']
-            }
+            author = t.find('div', 'author').text
+            date = "2018/" + t.find('div', 'date').text.strip()
+            mark = t.find('div', 'mark').text.strip()
+            if author != '-':
+                yield {
+                    'title': title,
+                    'hot_level': int(0 if len(hot_level) == 0 else hot_level),
+                    'url': "" if url is None else self.PTT_URL + url['href'],
+                    'date': time.mktime(datetime.datetime.strptime(date, "%Y/%m/%d").timetuple()),
+                    'author': author,
+                    'mark': False if len(mark) == 0 else True
+                }
 
     def get_content(self, url):
         text = self.__get_page_source(url)
@@ -56,7 +58,16 @@ class PTTSpider(object):
         for content in contents:
             r = re.search("^(https).*(jpg)$", content['href'])
             if r:
-                print(content['href'])
+                yield str(content['href'])
+
+    def get_photo(self, url, fold_path=""):
+        if len(fold_path) == 0:
+            fold_path = os.getcwd()
+        r = requests.get(url)
+        if r.status_code == 200:
+            path = fold_path + "/" + (re.search("/(\w+\.jpg)$", url)).group(1)
+            with open(path, 'wb') as f:
+                f.write(r.content)
 
     def __get_page_source(self, url):
         if not self.is_ptt_alive():
@@ -72,15 +83,39 @@ class PTTSpider(object):
             return True
         return False
 
+    '''
+    setting the condition about max lists
+    '''
+    def set_max_lists(self, num=20):
+        self.__max_lists = num
 
-def main():
-    ptt = PTTSpider()
-    if not ptt.is_ptt_alive():
-        print("ptt is off line")
-        return
+    '''
+    setting the condition about hot level
+    '''
+    def set_hot_level(self, level=0):
+        self.__hot_level = level
 
-    ptt.get_content("https://www.ptt.cc/bbs/Beauty/M.1521625110.A.6F4.html")
+    '''
+    starting spider
+    '''
+    def run(self):
+        if not self.is_ptt_alive():
+            print("PTT is not alive")
+            return
 
-
-if __name__ == '__main__':
-    main()
+        count = 0
+        data = []
+        now = PTT_BEAUTY_URL
+        while True:
+            for l in self.get_lists(now):
+                if int(l['hot_level']) < int(self.__hot_level):
+                    continue
+                photos = []
+                for photo in self.get_content(l['url']):
+                    photos.append(photo)
+                l.update({'photos': photos})
+                data.append(l)
+                count += 1
+                if count == self.__max_lists:
+                    return data
+            now = self.next_page(now)
