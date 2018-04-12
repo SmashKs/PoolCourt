@@ -23,11 +23,11 @@ class PTTSpider(object):
         """
         text = self.__get_page_source(url)
         soup = BeautifulSoup(text, 'lxml')
-        s = soup.find("div", "btn-group btn-group-paging")
+        s = soup.find('div', 'btn-group btn-group-paging')
         tags = s.find_all('a', href=True)
         for tag in tags:
             if tag.text.strip() == '‹ 上頁':
-                return PTT_URL + "/" + tag['href']
+                return PTT_URL + '/' + tag['href']
 
     def get_lists(self, board_url):
         """
@@ -37,20 +37,20 @@ class PTTSpider(object):
         soup = BeautifulSoup(text, 'lxml')
         titles = soup.find_all('div', 'r-ent')
         for t in titles:
-            title = t.find('div', "title").text.strip()
+            title = t.find('div', 'title').text.strip()
             hot_level = t.find('div', 'nrec').text.strip()
             if hot_level == '爆':
                 hot_level = '100'
             url = t.find('a', href=True)
             author = t.find('div', 'author').text
-            date = "2018/" + t.find('div', 'date').text.strip()
+            date = '2018/' + t.find('div', 'date').text.strip()
             mark = t.find('div', 'mark').text.strip()
             if author != '-':
                 yield {
                     'title': title,
                     'hot_level': int(0 if len(hot_level) == 0 else hot_level),
-                    'url': "" if url is None else PTT_URL + url['href'],
-                    'date': time.mktime(datetime.datetime.strptime(date, "%Y/%m/%d").timetuple()),
+                    'url': '' if url is None else PTT_URL + url['href'],
+                    'date': time.mktime(datetime.datetime.strptime(date, '%Y/%m/%d').timetuple()),
                     'author': author,
                     'mark': False if len(mark) == 0 else True
                 }
@@ -63,11 +63,11 @@ class PTTSpider(object):
         soup = BeautifulSoup(text, 'lxml')
         contents = soup.find_all('a', href=True)
         for content in contents:
-            r = re.search("^(https).*(jpg)$", content['href'])
+            r = re.search('^(https).*(jpg)$', content['href'])
             if r:
                 yield str(content['href'])
 
-    def get_photo(self, url, fold_path=""):
+    def get_photo(self, url, fold_path=''):
         """
         @type fold_path: str
         @type url: str
@@ -76,7 +76,7 @@ class PTTSpider(object):
             fold_path = os.getcwd()
         r = requests.get(url)
         if r.status_code == HTTPStatus.OK:
-            path = fold_path + "/" + (re.search("/(\w+\.jpg)$", url)).group(1)
+            path = fold_path + '/' + (re.search('/(\w+\.jpg)$', url)).group(1)
             with open(path, 'wb') as f:
                 f.write(r.content)
 
@@ -114,9 +114,10 @@ class PTTSpider(object):
     def run(self):
         """
         starting spider
+        @rtype: dict
         """
         if not self.is_ptt_alive():
-            print("PTT is not alive")
+            print('PTT is not alive')
             return
 
         count = 0
