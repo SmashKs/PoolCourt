@@ -3,6 +3,7 @@ import os
 import re
 import time
 from http import HTTPStatus
+from pprint import pprint as pp
 
 import requests
 from bs4 import BeautifulSoup
@@ -134,3 +135,8 @@ class PTTSpider(object):
                 if count == self.__max_lists:
                     return data
             now = self.next_page(now)
+
+
+if __name__ == '__main__':
+    spider = PTTSpider()
+    pp(spider.run())
