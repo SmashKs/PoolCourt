@@ -1,7 +1,3 @@
-import json
-from ImageSourceProp import ImageSourceProp
-
-
 class FirebaseWrapper(object):
     def __init__(self):
         self.__SERVICE_ACCOUNT = 'smashksdevelop-firebase-adminsdk.json'
@@ -12,4 +8,3 @@ class FirebaseWrapper(object):
 
     def read_image_properties(self):
         pass
-
