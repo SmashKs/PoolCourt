@@ -1,6 +1,8 @@
 class ImageSourceProp(object):
     def __init__(self):
         self.__tag = ''
+
+        ''' the count of like'''
         self.__count = -1
         self.__timestamp = ''
         self.__version = ''
