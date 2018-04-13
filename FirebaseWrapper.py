@@ -1,7 +1,3 @@
-import json
-import pyrebase
-
-
 class FirebaseWrapper(object):
     def __init__(self):
         self.__USER_CONFIG = 'smashksdevelop-config.json'
@@ -29,4 +25,3 @@ class FirebaseWrapper(object):
 
     def read_image_properties(self):
         pass
-
