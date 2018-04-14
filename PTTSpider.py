@@ -117,7 +117,7 @@ class PTTSpider(object):
         @rtype: dict
         """
         if not self.is_ptt_alive():
-            print('PTT is not alive')
+            pp('PTT is not alive')
             return
 
         count = 0
