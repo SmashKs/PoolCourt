@@ -21,36 +21,45 @@ class ImageDataObj:
 
 class ImageDetailObj:
     # The parameters doesn't allow to assign `None` value.
-    def __init__(self, uri='', tags=None, likes=0, author='', date=datetime.now()):
+    def __init__(self, title='', uri_list=None, tag_list=None, likes=0, author='', date=datetime.now()):
         """
-        @type uri: str
-        @type tags: list
+        @type title: str
+        @type uri_list: list
+        @type tag_list: list
         @type likes: int
         @type author: str
         @type date: datetime
         """
         # Setting a default value.
-        if tags is None:
-            tags = []
+        if uri_list is None:
+            uri_list = []
+        if tag_list is None:
+            tag_list = []
 
         # Checking the parameter is a None value.
-        if uri is None or tags is None or likes is None or author is None or date is None:
-            raise ValueError('The parameter must not be None.')
+        self.__parameters_checker(author, date, likes, tag_list, uri_list)
 
-        self.uri = uri
+        self.__title = title
+        self.__uri_list = uri_list
         # The comments were set while the author was uploading the photo.
-        self.tags = tags
+        self.__tag_list = tag_list
         # The number of likes which the photo was liked from friends and customers.
-        self.likes = likes
+        self.__likes = likes
         # The user who uploaded the photo.
-        self.author = author
-        self.date = date
+        self.__author = author
+        self.__date = date
 
     def __iter__(self):
-        yield 'uri', self.uri
-        yield 'tag', self.tags
-        yield 'count', self.likes
-        yield 'date', self.date.strftime('%Y-%m-%d %H:%M')
+        yield 'title', self.__title
+        yield 'uri', self.__uri_list
+        yield 'tag', self.__tag_list
+        yield 'count', self.__likes
+        yield 'date', self.__date.strftime('%Y-%m-%d %H:%M')
+
+    @staticmethod
+    def __parameters_checker(author, date, likes, tag_list, uri_list):
+        if uri_list is None or tag_list is None or likes is None or author is None or date is None:
+            raise ValueError('The parameter must not be None.')
 
 
 if __name__ == '__main__':
