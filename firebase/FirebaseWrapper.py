@@ -4,7 +4,9 @@ from pprint import pprint as pp
 import pyrebase
 from pyrebase.pyrebase import Auth, Database, Firebase, Storage
 
-from __init__ import FIREBASE_CONFIGURATION
+from firebase.__init__ import FIREBASE_CONFIGURATION
+
+IMAGE_VERSION_1 = 'properties'
 
 
 class FirebaseWrapper(object):
@@ -51,10 +53,10 @@ class FirebaseWrapper(object):
         """
         @type image_data: dict
         """
-        if image_data is dict:
-            self.__firebase_database.child('properties').set(image_data)
-        else:
+        if image_data is not dict:
             raise TypeError('image_data should be a dict object.')
+
+        self.__firebase_database.child(IMAGE_VERSION_1).set(image_data)
 
     def read_image_properties(self):
         pass
