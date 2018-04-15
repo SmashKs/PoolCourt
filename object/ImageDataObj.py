@@ -20,15 +20,31 @@ class ImageDataObj:
 
 
 class ImageDetailObj:
-    def __init__(self, uri=None, tags=None, likes=0, author=None, date=datetime.now()):
-        self.uri = uri  # type: str
+    # The parameters doesn't allow to assign `None` value.
+    def __init__(self, uri='', tags=None, likes=0, author='', date=datetime.now()):
+        """
+        @type uri: str
+        @type tags: list
+        @type likes: int
+        @type author: str
+        @type date: datetime
+        """
+        # Setting a default value.
+        if tags is None:
+            tags = []
+
+        # Checking the parameter is a None value.
+        if uri is None or tags is None or likes is None or author is None or date is None:
+            raise ValueError('The parameter must not be None.')
+
+        self.uri = uri
         # The comments were set while the author was uploading the photo.
-        self.tags = tags  # type: dict
+        self.tags = tags
         # The number of likes which the photo was liked from friends and customers.
-        self.likes = likes  # type: int
+        self.likes = likes
         # The user who uploaded the photo.
-        self.author = author  # type: str
-        self.date = date  # type: datetime
+        self.author = author
+        self.date = date
 
     def __iter__(self):
         yield 'uri', self.uri

@@ -5,6 +5,7 @@ import pyrebase
 from pyrebase.pyrebase import Auth, Database, Firebase, Storage
 
 from firebase.__init__ import FIREBASE_CONFIGURATION
+from object.ImageDataObj import ImageDataObj, ImageDetailObj
 
 IMAGE_VERSION_1 = 'properties'
 
@@ -53,7 +54,7 @@ class FirebaseWrapper(object):
         """
         @type image_data: dict
         """
-        if image_data is not dict:
+        if not isinstance(image_data, dict):
             raise TypeError('image_data should be a dict object.')
 
         self.__firebase_database.child(IMAGE_VERSION_1).set(image_data)
@@ -64,4 +65,4 @@ class FirebaseWrapper(object):
 
 if __name__ == '__main__':
     f = FirebaseWrapper().create()
-    f.write_image_properties()
+    f.write_image_properties(dict(ImageDataObj('ptt', ImageDetailObj())))
