@@ -4,13 +4,14 @@ import re
 import time
 from http import HTTPStatus
 from pprint import pprint as pp
+from typing import Union
 
 import requests
 from bs4 import BeautifulSoup
 
 from __init__ import HOT_LEVEL, MAX_LIST_COUNT, PTT_BEAUTY_URL, PTT_URL
 
-HTTP_RESPONSE_OK = HTTPStatus.OK if (hasattr(HTTPStatus, 'OK')) else 200  # type: HTTPStatus|int
+HTTP_RESPONSE_OK = HTTPStatus.OK if (hasattr(HTTPStatus, 'OK')) else 200  # type: Union[HTTPStatus, int]
 
 
 class PTTSpider(object):
