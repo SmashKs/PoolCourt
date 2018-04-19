@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 
 from __init__ import HOT_LEVEL, MAX_LIST_COUNT, PTT_BEAUTY_URL, PTT_URL
 
+HTTP_RESPONSE_OK = HTTPStatus.OK if (hasattr(HTTPStatus, 'OK')) else 200  # type: HTTPStatus|int
+
 
 class PTTSpider(object):
     def __init__(self):
@@ -75,7 +77,7 @@ class PTTSpider(object):
         if len(fold_path) == 0:
             fold_path = os.getcwd()
         r = requests.get(url)
-        if r.status_code == HTTPStatus.OK:
+        if r.status_code == HTTP_RESPONSE_OK:
             path = fold_path + '/' + (re.search('/(\w+\.jpg)$', url)).group(1)
             with open(path, 'wb') as f:
                 f.write(r.content)
@@ -87,13 +89,13 @@ class PTTSpider(object):
         if not self.is_ptt_alive():
             return None
         response = requests.get(url)
-        if response.status_code == HTTPStatus.OK:
+        if response.status_code == HTTP_RESPONSE_OK:
             return response.text
         return None
 
     def is_ptt_alive(self):
         response = requests.get(PTT_URL)
-        if response.status_code == HTTPStatus.OK:
+        if response.status_code == HTTP_RESPONSE_OK:
             return True
         return False
 
