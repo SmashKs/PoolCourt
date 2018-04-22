@@ -16,6 +16,7 @@ class AlbumHandler(object):
         self.__likes = -1
         self.__date = '1911/1/1'
         self.__photos = []
+        self.__tags = []
         self.__browser = webdriver.PhantomJS()
         self.__browser.get(self.__album_url)
 
@@ -42,14 +43,22 @@ class AlbumHandler(object):
     def get_photos(self):
         while True:
             soup = BeautifulSoup(self.__browser.page_source, 'lxml')
-            imgs = soup.find_all('img')
+            imgs = soup.find_all('img', alt=True)
             for img in imgs:
-                if re.search("alt", str(img)):
-                    self.__photos.append(img['src'])
+                self.__photos.append(img['src'])
 
             if not self.next_button():
                 break
         return len(self.__photos)
+
+    def get_tags(self):
+        soup = BeautifulSoup(self.__browser.page_source, 'lxml')
+        results = soup.find_all('a', href=True)
+        for result in results:
+            r = re.search("/explore/tags/", str(result))
+            if r:
+                self.__tags.append(result.text)
+        return len(self.__tags)
 
     def get_reply_count(self):
         pass
