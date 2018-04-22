@@ -61,7 +61,19 @@ class AlbumHandler(object):
         return len(self.__tags)
 
     def get_reply_count(self):
-        pass
+        soup = BeautifulSoup(self.__browser.page_source, 'lxml')
+        replies = soup.find_all('a', role=False, title=self.__instagram_user)
+        for reply in replies:
+            #print(str(reply.parent))
+            print(reply.find('li'))
+
+    def load_comments(self):
+        while True:
+            soup = BeautifulSoup(self.__browser.page_source, 'lxml')
+            button = soup.find('a', role=True, text='Load more comments')
+            if not button:
+                break
+            self.__browser.find_element_by_css_selector('a.' + '.'.join(button['class'])).click()
 
     def next_button(self):
         if len(self.__browser.page_source) == 0:
@@ -94,7 +106,7 @@ class AlbumHandler(object):
 
 def main():
     album = AlbumHandler(ALBUM_URL, USER)
-    album.get_photos()
+    album.get_reply_count()
 
 
 if __name__ == '__main__':
