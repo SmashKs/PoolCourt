@@ -5,7 +5,7 @@ from instagram.InstagramConstants import PHOTO_NEXT_BUTTON, PHOTO_PREV_BUTTON
 import time
 
 
-ALBUM_URL = 'https://www.instagram.com/p/BgeeDyoFPrH/?taken-by=annehathaway'
+ALBUM_URL = 'https://www.instagram.com/p/BgURvYOlVSR/?taken-by=annehathaway'
 USER = 'annehathaway'
 
 
@@ -39,6 +39,21 @@ class AlbumHandler(object):
                 return True
         return False
 
+    def get_photos(self):
+        while True:
+            soup = BeautifulSoup(self.__browser.page_source, 'lxml')
+            imgs = soup.find_all('img')
+            for img in imgs:
+                if re.search("alt", str(img)):
+                    self.__photos.append(img['src'])
+
+            if not self.next_button():
+                break
+        return len(self.__photos)
+
+    def get_reply_count(self):
+        pass
+
     def next_button(self):
         if len(self.__browser.page_source) == 0:
             return False
@@ -70,7 +85,7 @@ class AlbumHandler(object):
 
 def main():
     album = AlbumHandler(ALBUM_URL, USER)
-    album.get_date()
+    album.get_photos()
 
 
 if __name__ == '__main__':
