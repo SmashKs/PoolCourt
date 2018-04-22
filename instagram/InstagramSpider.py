@@ -15,6 +15,7 @@ class InstagramSpider(object):
 
         # properties
         self.__date = '19110101'
+        self.__likes = 0
 
     def get_list(self):
         browser = webdriver.PhantomJS()
@@ -27,36 +28,14 @@ class InstagramSpider(object):
         for album in albums:
             yield WEB_URL + album + USER_TAKEN + INSTAGRAM_USER
 
+    def get_album_metadata(self, album_url):
+        browser = webdriver.PhantomJS()
+        browser.get(album_url)
+        self.__current_page_content = browser.page_source
+
     def get_photos(self, url):
         pass
 
-    def next_button(self):
-        if len(self.__current_page_content) == 0:
-            return False
-
-        soup = BeautifulSoup(self.__current_page_content, 'lxml')
-        results = soup.find_all('div')
-        for result in results:
-            r = re.search("([_\d\w]+)\s+([_\d\w]+)\s+coreSpriteRightChevron", str(result))
-            if r:
-                next_button = 'a.' + r.group(1) + '.' + r.group(2) + '.' + PHOTO_NEXT_BUTTON
-                self.__web_browser.find_element_by_css_selector(next_button).click()
-                return True
-        return False
-
-    def previous_button(self):
-        if len(self.__current_page_content) == 0:
-            return False
-
-        soup = BeautifulSoup(self.__current_page_content, 'lxml')
-        results = soup.find_all('div')
-        for result in results:
-            r = re.search("([_\d\w]+)\s+([_\d\w]+)\s" + PHOTO_PREV_BUTTON, str(result))
-            if r:
-                next_button = 'a.' + r.group(1) + '.' + r.group(2) + '.' + PHOTO_PREV_BUTTON
-                self.__web_browser.find_element_by_css_selector(next_button)
-                return True
-        return False
 
     @property
     def date(self):
