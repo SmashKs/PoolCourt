@@ -44,6 +44,8 @@ class PTTSpider(object):
             hot_level = t.find('div', 'nrec').text.strip()
             if hot_level == '爆':
                 hot_level = '100'
+            elif 'X' in hot_level:  # The sucks post, just skip it.
+                continue
             url = t.find('a', href=True)
             author = t.find('div', 'author').text
             date = '2018/' + t.find('div', 'date').text.strip()
