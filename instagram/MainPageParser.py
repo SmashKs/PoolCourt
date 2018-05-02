@@ -63,5 +63,5 @@ class MainPageParser(object):
         variables['id'] = query_id
         variables['first'] = 12
         variables['after'] = end_cursor
-        cmd = instagram_query + query_id + '&variables=' + parse.quote(json.dumps(variables))
+        cmd = instagram_query + query_hash + '&variables=' + parse.quote(json.dumps(variables))
         return cmd
