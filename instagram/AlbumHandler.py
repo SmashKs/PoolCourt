@@ -1,9 +1,11 @@
-from bs4 import BeautifulSoup
 import re
-from selenium import webdriver
-from instagram.InstagramConstants import PHOTO_NEXT_BUTTON, PHOTO_PREV_BUTTON
 import time
 
+from bs4 import BeautifulSoup
+from selenium import webdriver
+
+from instagram import PATH_OF_PhantomJS
+from instagram.InstagramConstants import PHOTO_NEXT_BUTTON, PHOTO_PREV_BUTTON
 
 ALBUM_URL = 'https://www.instagram.com/p/BgURvYOlVSR/?taken-by=annehathaway'
 USER = 'annehathaway'
@@ -18,7 +20,7 @@ class AlbumHandler(object):
         self.__date = '1911/1/1'
         self.__photos = []
         self.__tags = []
-        self.__browser = webdriver.PhantomJS()
+        self.__browser = webdriver.PhantomJS(executable_path=PATH_OF_PhantomJS)
         self.__browser.get(self.__album_url)
 
     def get_likes(self):

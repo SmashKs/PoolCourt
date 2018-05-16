@@ -4,7 +4,7 @@ from pprint import pprint as pp
 import pyrebase
 from pyrebase.pyrebase import Auth, Database, Firebase, Storage
 
-from firebase.__init__ import FIREBASE_CONFIGURATION
+from firebase import FIREBASE_CONFIGURATION
 from object.ImageDataObj import ImageDataObj, ImageDetailObj
 
 IMAGE_VERSION_1 = 'properties'
