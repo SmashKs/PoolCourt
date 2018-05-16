@@ -4,7 +4,6 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-from instagram import PATH_OF_PhantomJS
 from instagram.InstagramConstants import PHOTO_NEXT_BUTTON, PHOTO_PREV_BUTTON
 
 ALBUM_URL = 'https://www.instagram.com/p/BgURvYOlVSR/?taken-by=annehathaway'
@@ -20,7 +19,10 @@ class AlbumHandler(object):
         self.__date = '1911/1/1'
         self.__photos = []
         self.__tags = []
-        self.__browser = webdriver.PhantomJS(executable_path=PATH_OF_PhantomJS)
+        # NOTE: For running PhantomJS well, you need to install the PhantomJS from http://phantomjs.org
+        # Set the path direct to the PhantomJS folder as like above. Then you can work well! 😉
+        # self.__browser = webdriver.PhantomJS(executable_path=PATH_OF_PhantomJS)
+        self.__browser = webdriver.PhantomJS()
         self.__browser.get(self.__album_url)
 
     def get_likes(self):
