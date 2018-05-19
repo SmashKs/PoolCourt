@@ -69,6 +69,9 @@ class MainPageParser(object):
         cmd = instagram_query + query_hash + '&variables=' + str(variables).replace(' ', '').replace("'", '"')
         self.__browser.get(cmd)
 
+        print(self.__browser.page_source)
+        self.__get_response_json_content(self.__browser.page_source)
+
         # albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
         # if len(albums) == 0:
         #     return None
@@ -121,6 +124,16 @@ class MainPageParser(object):
                 if r:
                     return r.group(1)
         return None
+
+    def __get_response_json_content(self, content):
+        soup = BeautifulSoup(content, 'lxml')
+        json_content = soup.find('pre').text
+        j = json.loads(json_content)
+        edges = j['data']['user']['edge_owner_to_timeline_media']['edges']
+        print(edges)
+        for edge in edges:
+            uri = edge['node']['display_url']
+            print(uri)
 
 
 class MainPageParser2(object):
