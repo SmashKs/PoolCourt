@@ -5,6 +5,7 @@ from urllib import parse
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.ie.webdriver import WebDriver
 
 from instagram.InstagramLogin import LoginModule
 
@@ -34,7 +35,10 @@ class MainPageParser(object):
         self.__login_module = LoginModule(self.__browser)
         self.__url = url
 
-    def run(self):
+    def run(self, username, password):
+        # Before anything login to the Instragram.
+        self.__login_module.login(username, password)
+
         self.__browser.get(self.__url)
         soup = BeautifulSoup(self.__browser.page_source, 'lxml')
         albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
@@ -52,25 +56,18 @@ class MainPageParser(object):
 
         # The fist step.
         query_hash = self.get_user_id(self.__browser.page_source)
-        print(query_hash)
         # The second step.
-        query_id = self.get_id(self.__browser.page_source)
-        print(query_id)
+        user_id = self.get_id(self.__browser.page_source)
         # The third step.
         end_cursor = self.get_end_cursor(self.__browser.page_source)
-        print(end_cursor)
 
         instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
         variables = dict()
-        variables['id'] = query_id
+        variables['id'] = user_id
         variables['first'] = 12
         variables['after'] = end_cursor
-        # cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + query_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
         cmd = instagram_query + query_hash + '&variables=' + str(variables).replace(' ', '').replace("'", '"')
-        print('url: ' + cmd)
         self.__browser.get(cmd)
-
-        print(self.__browser.page_source)
 
         # albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
         # if len(albums) == 0:
@@ -87,7 +84,8 @@ class MainPageParser(object):
         results = soup.find_all('script', type='text/javascript', src=False)
         for result in results:
             if re.search("window._sharedData", str(result)):
-                r = re.search("\"id\":\"(\d+)\"", str(result))
+                print(result)
+                r = re.search(r'"owner":{"id":"(\d+)"}', str(result))
                 if r:
                     return r.group(1)
         return None
@@ -97,24 +95,22 @@ class MainPageParser(object):
         result = soup.find('link', rel='preload', href=True)
         url = INSTAGRAM + result['href']
         # response = requests.get(url, headers=HEADERS)
-        # print('(get_user_id) url: ' + url)
+        print('(get_user_id) url: ' + url)
         self.__browser.get(url)
         # print('(get_user_id) content: ' + self.__browser.page_source)
         # r = re.search("\},m=\"([\w\d]+)\",g=Object", self.__browser.page_source)
         #
         # return r.group(1)
 
-        hash_id_list = re.findall(r'queryId:"\w+"', self.__browser.page_source)
+        hash_id_list = re.findall(r'queryId:"(\w+)"', self.__browser.page_source)
         if not hash_id_list:
             print("Didn't find anything...")
             return []
-
-        prefix_len = len('queryId:"')
-        hash_id_list = list(map(lambda s: s[prefix_len:-1], hash_id_list))
+        print(hash_id_list)
 
         self.__browser.back()
 
-        return hash_id_list[-1]  # Use the last one.
+        return hash_id_list[1]
 
     def get_end_cursor(self, content):
         soup = BeautifulSoup(content, 'lxml')
