@@ -34,40 +34,24 @@ class MainPageParser(object):
         self.__browser = webdriver.PhantomJS()  # type: WebDriver
         self.__login_module = LoginModule(self.__browser)
         self.__url = url
+        self.__user_id = ''
+        self.__query_hash = ''
 
     def run(self, username, password):
         # Before anything login to the Instragram.
         self.__login_module.login(username, password)
-
+        # Go to the a user page we wanna get.
         self.__browser.get(self.__url)
-        soup = BeautifulSoup(self.__browser.page_source, 'lxml')
-        albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
-        if len(albums) == 0:
-            return None
-
-        count = 0
-        # for album in albums:
-        #     count += 1
-        #     print(album)
-        # print('count: ' + str(count))
-
-        # parser = MainPageParser2('annehathaway')
-        # print(parser.query_cmd())
 
         # The fist step.
-        query_hash = self.get_user_id(self.__browser.page_source)
+        self.__query_hash = self.get_user_id(self.__browser.page_source)
         # The second step.
-        user_id = self.get_id(self.__browser.page_source)
+        self.__user_id = self.get_id(self.__browser.page_source)
         # The third step.
         end_cursor = self.get_end_cursor(self.__browser.page_source)
 
-        instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
-        variables = dict()
-        variables['id'] = user_id
-        variables['first'] = 12
-        variables['after'] = end_cursor
-        cmd = instagram_query + query_hash + '&variables=' + str(variables).replace(' ', '').replace("'", '"')
-        self.__browser.get(cmd)
+        # Get the first page api.
+        self.__jump_to_album_page(end_cursor)
 
         print(self.__browser.page_source)
         self.__get_response_json_content(self.__browser.page_source)
@@ -98,7 +82,7 @@ class MainPageParser(object):
         result = soup.find('link', rel='preload', href=True)
         url = INSTAGRAM + result['href']
         # response = requests.get(url, headers=HEADERS)
-        print('(get_user_id) url: ' + url)
+        # print('(get_user_id) url: ' + url)
         self.__browser.get(url)
         # print('(get_user_id) content: ' + self.__browser.page_source)
         # r = re.search("\},m=\"([\w\d]+)\",g=Object", self.__browser.page_source)
@@ -109,7 +93,6 @@ class MainPageParser(object):
         if not hash_id_list:
             print("Didn't find anything...")
             return []
-        print(hash_id_list)
 
         self.__browser.back()
 
@@ -125,15 +108,30 @@ class MainPageParser(object):
                     return r.group(1)
         return None
 
+    def __jump_to_album_page(self, end_cursor):
+        instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
+        variables = dict()
+        variables['id'] = self.__user_id
+        variables['first'] = 12
+        variables['after'] = end_cursor
+        cmd = instagram_query + self.__query_hash + '&variables=' + str(variables).replace(' ', '').replace("'", '"')
+        self.__browser.get(cmd)
+
     def __get_response_json_content(self, content):
         soup = BeautifulSoup(content, 'lxml')
         json_content = soup.find('pre').text
         j = json.loads(json_content)
         edges = j['data']['user']['edge_owner_to_timeline_media']['edges']
-        print(edges)
+
         for edge in edges:
             uri = edge['node']['display_url']
             print(uri)
+
+        # Recursive pase the album.
+        page_info = j['data']['user']['edge_owner_to_timeline_media']['page_info']
+        if page_info['has_next_page']:
+            self.__jump_to_album_page(page_info['end_cursor'])
+            self.__get_response_json_content(self.__browser.page_source)
 
 
 class MainPageParser2(object):
