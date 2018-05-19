@@ -1,10 +1,10 @@
+import json
+import re
+from urllib import parse
+
 import requests
 from bs4 import BeautifulSoup
-import re
-import json
-from urllib import parse
 from selenium import webdriver
-from instagram.InstagramConstants import WEB_URL, USER_TAKEN
 
 HEADERS = {
     "Origin": "https://www.instagram.com/",
@@ -39,35 +39,38 @@ class MainPageParser(object):
             return None
 
         count = 0
-        for album in albums:
-            count += 1
-            print(album)
-        print('count: ' + str(count))
+        # for album in albums:
+        #     count += 1
+        #     print(album)
+        # print('count: ' + str(count))
 
         # parser = MainPageParser2('annehathaway')
         # print(parser.query_cmd())
 
-        query_hash = self.get_user_id(self.__browser.page_source)
+        # query_hash = self.get_user_id(self.__browser.page_source)
+        # print(query_hash)
         query_id = self.get_id(self.__browser.page_source)
-        end_cursor = self.get_end_cursor(self.__browser.page_source)
-        instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
-        variables = dict()
-        variables['id'] = query_id
-        variables['first'] = 12
-        variables['after'] = end_cursor
-        cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + query_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
-        print('url: ' + cmd)
-        self.__browser.get(cmd)
+        print(query_id)
 
-        albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
-        if len(albums) == 0:
-            return None
-
-        count = 0
-        for album in albums:
-            count += 1
-            print(album)
-        print('count: ' + str(count))
+        # end_cursor = self.get_end_cursor(self.__browser.page_source)
+        # instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
+        # variables = dict()
+        # variables['id'] = query_id
+        # variables['first'] = 12
+        # variables['after'] = end_cursor
+        # cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + query_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
+        # print('url: ' + cmd)
+        # self.__browser.get(cmd)
+        #
+        # albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
+        # if len(albums) == 0:
+        #     return None
+        #
+        # count = 0
+        # for album in albums:
+        #     count += 1
+        #     print(album)
+        # print('count: ' + str(count))
 
     def get_id(self, content):
         soup = BeautifulSoup(content, 'lxml')
@@ -85,10 +88,19 @@ class MainPageParser(object):
         url = INSTAGRAM + result['href']
         # response = requests.get(url, headers=HEADERS)
         print('(get_user_id) url: ' + url)
-        #self.__browser.get(url)
+        self.__browser.get(url)
         print('(get_user_id) content: ' + self.__browser.page_source)
-        r = re.search("\},m=\"([\w\d]+)\",g=Object", self.__browser.page_source)
-        return r.group(1)
+        # r = re.search("\},m=\"([\w\d]+)\",g=Object", self.__browser.page_source)
+        # return r.group(1)
+        hash_id_list = re.findall(r'queryId:"\w+"', self.__browser.page_source)
+        if not hash_id_list:
+            print("Didn't find anything...")
+            return []
+
+        prefix_len = len('queryId:"')
+        hash_id_list = list(map(lambda s: s[prefix_len:-1], hash_id_list))
+
+        return hash_id_list
 
     def get_end_cursor(self, content):
         soup = BeautifulSoup(content, 'lxml')
