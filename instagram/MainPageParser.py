@@ -43,28 +43,31 @@ class MainPageParser(object):
         # Go to the a user page we wanna get.
         self.__browser.get(self.__url)
 
+        self.__obtain_albums_from_home_page()
+
         # The fist step.
         self.__query_hash = self.get_user_id(self.__browser.page_source)
         # The second step.
         self.__user_id = self.get_id(self.__browser.page_source)
-        # The third step.
+        # The third step in the first page.
         end_cursor = self.get_end_cursor(self.__browser.page_source)
 
-        # Get the first page api.
+        # Using the api request for getting all albums from the second page.
         self.__jump_to_album_page(end_cursor)
 
         print(self.__browser.page_source)
         self.__get_response_json_content(self.__browser.page_source)
 
-        # albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
-        # if len(albums) == 0:
-        #     return None
-        #
-        # count = 0
-        # for album in albums:
-        #     count += 1
-        #     print(album)
-        # print('count: ' + str(count))
+    def __obtain_albums_from_home_page(self):
+        albums = re.findall("<a href=\"(/p[\/\d\w]+)\/", self.__browser.page_source)
+        if len(albums) == 0:
+            return None
+
+        count = 0
+        for album in albums:
+            count += 1
+            print(album)
+        print('count: ' + str(count))
 
     def get_id(self, content):
         soup = BeautifulSoup(content, 'lxml')
@@ -127,7 +130,7 @@ class MainPageParser(object):
             uri = edge['node']['display_url']
             print(uri)
 
-        # Recursive pase the album.
+        # Recursive parse the album.
         page_info = j['data']['user']['edge_owner_to_timeline_media']['page_info']
         if page_info['has_next_page']:
             self.__jump_to_album_page(page_info['end_cursor'])
@@ -242,7 +245,7 @@ class MainPageParser2(object):
 def main():
     # response = requests.get('https://www.instagram.com/annehathaway', headers=HEADERS)
     main_page = MainPageParser('https://www.instagram.com/annehathaway')
-    main_page.run()
+    main_page.run('jieyi.wu@cloverlab.jp', 'taiwanno1')
 
 
 if __name__ == '__main__':
