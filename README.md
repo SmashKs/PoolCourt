@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/23b66c92755047cd8db71503bad1d098)](https://www.codacy.com/app/pokk/PoolCourt?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=SmashKs/PoolCourt&amp;utm_campaign=Badge_Grade)
+
 # PoolCourt
 A spider fetches all data everywhere 😉
 
