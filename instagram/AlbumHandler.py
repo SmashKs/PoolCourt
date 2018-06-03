@@ -10,7 +10,7 @@ ALBUM_URL = 'https://www.instagram.com/p/BgURvYOlVSR/?taken-by=annehathaway'
 USER = 'annehathaway'
 
 
-class AlbumHandler2:
+class AlbumHandler:
     def __init__(self, album_url, user):
         self.__album_url = album_url
         self.user = user
@@ -67,7 +67,7 @@ class AlbumHandler2:
 
 
 def main():
-    album = AlbumHandler2('https://www.instagram.com/p/BjaMA2GFAty/?taken-by=annehathaway', 'annehathaway')
+    album = AlbumHandler('https://www.instagram.com/p/BjaMA2GFAty/?taken-by=annehathaway', 'annehathaway')
     album.run()
     print('status: ' + str(album.status_code))
     print(album.get_photos())
