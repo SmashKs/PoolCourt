@@ -8,6 +8,7 @@ from selenium import webdriver
 from selenium.webdriver.ie.webdriver import WebDriver
 
 from instagram.InstagramLogin import LoginModule
+from instagram.InstagramRequest import InstagramRequest
 
 HEADERS = {
     "Origin": "https://www.instagram.com/",
@@ -134,115 +135,127 @@ class MainPageParser(object):
             self.__get_response_json_content(self.__browser.page_source)
 
 
-class MainPageParser2(object):
-    def __init__(self, user):
-        self.__user = user
-        self.__qq = requests.session()
+class MainPageParser2:
+    def __init__(self, username, url):
+        self.__username = username
+        self.__url = url
+        self.__content = ''
+        self.status_code = -1
+        self.__metadata = {}
+        self.__requests = requests.session()
 
-    def get_end_cursor(self, content):
-        soup = BeautifulSoup(content, 'lxml')
-        results = soup.find_all('script', type='text/javascript', src=False)
+    def run(self):
+        response = self.__requests.get(self.__url)
+        self.__content = response.content.decode()
+        self.status_code = response.status_code
+        if self.status_code != 200:
+            print('status code: ' + str(self.status_code))
+            return
+
+        # search window._sharedData
+        soup = BeautifulSoup(self.__content, 'lxml')
+        results = soup.find_all('script', type='text/javascript')
         for result in results:
-            if re.search("window\._sharedData", str(result)):
-                r = re.search("end_cursor\":\"([-_\d\w\.]+)\"", str(result))
-                if r:
-                    return r.group(1)
-        return None
+            r = re.findall('window._sharedData =', str(result))
+            if r:
+                json_part = result.string
+                print(json_part)
+                self.__metadata = json.loads(json_part[json_part.find('=')+2: -1])
+                break
 
-    def get_query_hash(self, content):
-        soup = BeautifulSoup(content, 'lxml')
+    def login(self, username, password):
+        HEADER = {
+            'accept': '*/*',
+            'accept-encoding': 'gzip, deflate, br',
+            'accept-language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6,en;q=0.4',
+            'content-length': '23',
+            'content-type': 'application/x-www-form-urlencoded',
+            'cookie': 'mid=V39AvQAEAAEIwy8g1C7EViIlodxd; s_network=; ig_pr=1; ig_vw=650; '
+                      'csrftoken=3r8AwU3xWRhQMFIMz5b6ICn6Pfa4A5ZV',
+            'origin': 'https://www.instagram.com',
+            'referer': 'https://www.instagram.com/accounts/login/',
+            'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/51.0.2704.103 Safari/537.36',
+            'x-csrftoken': '3r8AwU3xWRhQMFIMz5b6ICn6Pfa4A5ZV',
+            'x-instagram-ajax': '1',
+            'x-requested-with': 'XMLHttpRequest'
+        }
+        response = self.__requests.get('https://www.instagram.com/accounts/login')
+        print('login status: ' + str(response.status_code))
+        data = {'username': username, 'password': password}
+        response = self.__requests.post('https://www.instagram.com/accounts/login/ajax/', data=data, headers=HEADER)
+        print('login pose status: ' + str(response.status_code))
+
+    def get_follower_count(self):
+        if len(self.__metadata) == 0:
+            return -1
+
+        return int(self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['edge_followed_by']['count'])
+
+    def get_album_count(self):
+        if len(self.__metadata) == 0:
+            return -1
+
+        return int(self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['count'])
+
+    def is_verified_user(self):
+        if len(self.__metadata) == 0:
+            return False
+
+        return self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['is_verified']
+
+    def get_user_id(self):
+        if len(self.__metadata) == 0:
+            return ''
+
+        return self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+
+    def get_end_cursor(self):
+        if len(self.__metadata) == 0:
+            return ''
+
+        return self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
+
+    def get_query_hash(self):
+        soup = BeautifulSoup(self.__content, 'lxml')
         result = soup.find('link', rel='preload', href=True)
         url = INSTAGRAM + result['href']
-        response = requests.get(url, headers=HEADERS)
+        response = self.__requests.get(url, headers=HEADERS)
         r = re.findall("queryId:\"([\w\d]+)\"", response.content.decode())
         return r[1]
 
-    def get_id(self, content):
-        soup = BeautifulSoup(content, 'lxml')
-        results = soup.find_all('script', type='text/javascript', src=False)
-        for result in results:
-            if re.search("window\._sharedData", str(result)):
-                r = re.search("\"id\":\"(\d+)\"", str(result))
-                if r:
-                    return r.group(1)
-        return None
+    def get_albums(self):
+        if len(self.__metadata) == 0:
+            return None
 
-    def get_user_id(self, content):
-        soup = BeautifulSoup(content, 'lxml')
-        result = soup.find('link', rel='preload', href=True)
-        url = INSTAGRAM + result['href']
-        response = requests.get(url, headers=HEADERS)
-        r = re.search("\},m=\"([\w\d]+)\",g=Object", response.content.decode())
-        return r.group(1)
+        album_list = []
+        for node in self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['edges']:
+            album_list.append(node['node']['shortcode'])
 
-    def first_query(self):
-        response = self.__qq.get(INSTAGRAM + '/' + self.__user, headers=HEADERS)
-        query_hash = self.get_user_id(response.content.decode())
-        query_id = self.get_id(response.content.decode())
-        query_url = 'https://www.instagram.com/graphql/query/?query_hash='
-        variables = dict()
-        variables['user_id'] = query_id
-        variables['include_chaining'] = 'false'
-        variables['include_reel'] = 'false'
-        variables['include_suggested_users'] = 'false'
-        variables['include_logged_out_extras'] = 'true'
-        variables['include_highlight_reels'] = 'false'
-        url = query_url + query_hash + parse.quote(json.dumps(variables))
-        print(dict(response.cookies))
-        HEADERS['cookie'] = json.dumps(dict(response.cookies))
-        print(HEADERS)  # get 403
-        # response = requests.get(url, headers=HEADERS)
-        # print('status: ' + str(response.status_code))
-        # print('header: ' + str(response.headers))
+        return album_list
 
-    def test_by_selenium(self):
-        browser = webdriver.PhantomJS()
-        browser.get(INSTAGRAM + '/' + self.__user)
-        print(browser.page_source)
-        query_hash = self.get_user_id(browser.page_source)
-        query_id = self.get_id(browser.page_source)
-        end_cursor = self.get_end_cursor(browser.page_source)
+    def query_page(self):
+        user_id = self.get_user_id()
+        end_cursor = self.get_end_cursor()
+        query_hash = self.get_query_hash()
+        print(self.__metadata)
+        print('query_hash: ' + query_hash)
         instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
-        variables = dict()
-        variables['id'] = query_id
-        variables['first'] = 12
-        variables['after'] = end_cursor
-        cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + query_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
-        print('url: ' + cmd)
-        browser.get(cmd)
-        print(browser.page_source)
-        browser.close()
+        cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + user_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
+        response = self.__requests.get(cmd)
+        print('status code: ' + str(response.status_code))
+        return self.get_album_from_query(response.content.decode())
 
-    def query_cmd(self):
-        response = self.__qq.get(INSTAGRAM + '/' + self.__user, headers=HEADERS)
-        query_hash = self.get_query_hash(response.content.decode())
-        query_id = self.get_id(response.content.decode())
-        end_cursor = self.get_end_cursor(response.content.decode())
-        instagram_query = 'https://www.instagram.com/graphql/query/?query_hash='
-        variables = dict()
-        variables['id'] = query_id
-        variables['first'] = 12
-        variables['after'] = end_cursor
-        # cmd = instagram_query + query_hash + '&variables=' + parse.quote(json.dumps(variables))
-        cmd = instagram_query + query_hash + '&variables=%7B%22id%22%3A%22' + query_id + '%22%2C%22first%22%3A12%2C%22after%22%3A%22' + end_cursor + '%22%7D'
-        response = self.__qq.get(cmd, cookies=response.cookies)
-        print('status: ' + str(response.status_code))
-        print(response.headers)
-        return cmd
-
-    def test(self):
-        response = self.__qq.get(INSTAGRAM + '/' + self.__user, headers=HEADERS)
-        print('status: ' + str(response.status_code))
-        print('headers: ' + str(response.headers))
-        print('cookies')
-        print(str(response.cookies))
-        self.get_profile_page_container(response.content.decode())
+    def get_album_from_query(self, content):
+        album_list = []
+        metadata = json.loads(content)
+        for node in metadata['data']['user']['edge_owner_to_timeline_media']['edges']:
+            album_list.append(node['node']['shortcode'])
+        return album_list
 
 
 def main():
-    # response = requests.get('https://www.instagram.com/annehathaway', headers=HEADERS)
-    main_page = MainPageParser('https://www.instagram.com/annehathaway')
-    main_page.run()
+    pass
 
 
 if __name__ == '__main__':
