@@ -23,12 +23,15 @@ class InstagramRequest:
             'x-instagram-ajax': '8958fe1e75ab',
             'x-requested-with': 'XMLHttpRequest'
         }
-        self.__login()
+        self.login()
 
-    def __login(self):
+    def login(self):
         data = {'username': self.__username, 'password': self.__password}
         response = self.__requests.post('https://www.instagram.com/accounts/login/ajax/', data=data, headers=self.__HEADERS)
         return response.status_code
+
+    def logout(self):
+        pass
 
     def get(self, url, headers='', cookies=''):
         return self.__requests.get(url, headers=headers, cookies=cookies)

@@ -177,12 +177,3 @@ class MainPageParser:
                 if not node['node']['is_video']:
                     album_list.append(node['node']['shortcode'])
             return album_list
-
-
-def main():
-    page = MainPageParser('annehathaway')
-    print(page.run('user account', 'user password'))
-
-
-if __name__ == '__main__':
-    main()

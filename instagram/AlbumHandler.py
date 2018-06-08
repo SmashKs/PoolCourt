@@ -1,13 +1,8 @@
 import re
-import time
 import requests
 import json
 
 from bs4 import BeautifulSoup
-
-
-ALBUM_URL = 'https://www.instagram.com/p/BgURvYOlVSR/?taken-by=annehathaway'
-USER = 'annehathaway'
 
 
 class AlbumHandler:
@@ -64,17 +59,3 @@ class AlbumHandler:
             return -1
 
         return int(self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['taken_at_timestamp'])
-
-
-def main():
-    album = AlbumHandler('https://www.instagram.com/p/BjaMA2GFAty/?taken-by=annehathaway', 'annehathaway')
-    album.run()
-    print('status: ' + str(album.status_code))
-    print(album.get_photos())
-    print('comment count: ' + str(album.get_comment_count()))
-    print('like count: ' + str(album.get_like_count()))
-    print('timestamp: ' + str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(album.get_post_time()))))
-
-
-if __name__ == '__main__':
-    main()
