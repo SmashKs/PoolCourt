@@ -1,4 +1,5 @@
 import requests
+from instagram.MainPageParser import MainPageParser
 
 
 class InstagramRequest:
@@ -33,7 +34,6 @@ class InstagramRequest:
 
     def logout(self):
         response = self.__requests.post('https://www.instagram.com/accounts/logout/')
-        print(response.content.decode())
         return int(response.status_code)
 
     def get(self, url, headers='', cookies=''):

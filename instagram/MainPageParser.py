@@ -2,7 +2,6 @@ import json
 import re
 
 from bs4 import BeautifulSoup
-from instagram.InstagramRequest import InstagramRequest
 
 INSTAGRAM = 'https://www.instagram.com'
 
