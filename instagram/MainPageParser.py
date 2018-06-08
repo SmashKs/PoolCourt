@@ -1,23 +1,20 @@
 import json
 import re
-import requests
 
 from bs4 import BeautifulSoup
-
-from instagram.InstagramLogin import LoginModule
 from instagram.InstagramRequest import InstagramRequest
 
 INSTAGRAM = 'https://www.instagram.com'
 
 
 class MainPageParser:
-    def __init__(self, username):
+    def __init__(self, username, request):
         self.__username = username
         self.__url = INSTAGRAM + '/' + self.__username
         self.__content = ''
         self.status_code = -1
         self.__metadata = {}
-        self.__requests = requests.session()
+        self.__requests = request
         self.get_data()
 
     def get_data(self):
@@ -38,29 +35,6 @@ class MainPageParser:
                 print(json_part)
                 self.__metadata = json.loads(json_part[json_part.find('=')+2: -1])
                 break
-
-    def login(self, username, password):
-        HEADER = {
-            'accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'zh-CN,zh;q=0.8,zh-TW;q=0.6,en;q=0.4',
-            'content-length': '23',
-            'content-type': 'application/x-www-form-urlencoded',
-            'cookie': 'mid=V39AvQAEAAEIwy8g1C7EViIlodxd; s_network=; ig_pr=1; ig_vw=650; '
-                      'csrftoken=3r8AwU3xWRhQMFIMz5b6ICn6Pfa4A5ZV',
-            'origin': 'https://www.instagram.com',
-            'referer': 'https://www.instagram.com/accounts/login/',
-            'user-agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                          'Chrome/51.0.2704.103 Safari/537.36',
-            'x-csrftoken': '3r8AwU3xWRhQMFIMz5b6ICn6Pfa4A5ZV',
-            'x-instagram-ajax': '1',
-            'x-requested-with': 'XMLHttpRequest'
-        }
-        response = self.__requests.get('https://www.instagram.com/accounts/login')
-        print('login status: ' + str(response.status_code))
-        data = {'username': username, 'password': password}
-        response = self.__requests.post('https://www.instagram.com/accounts/login/ajax/', data=data, headers=HEADER)
-        print('login pose status: ' + str(response.status_code))
 
     def get_follower_count(self):
         if len(self.__metadata) == 0:
@@ -96,7 +70,7 @@ class MainPageParser:
         soup = BeautifulSoup(self.__content, 'lxml')
         result = soup.find('link', rel='preload', href=True)
         url = INSTAGRAM + result['href']
-        response = self.__requests.get(url, headers=HEADERS)
+        response = self.__requests.get(url)
         r = re.findall("queryId:\"([\w\d]+)\"", response.content.decode())
         return r[1]
 
@@ -125,8 +99,7 @@ class MainPageParser:
                 albums.append(album)
         return albums
 
-    def run(self, username, password):
-        self.login(username, password)
+    def run(self):
         output = []
         albums = self.get_albums()
         for album in albums:
