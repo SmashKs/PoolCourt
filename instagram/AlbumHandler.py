@@ -6,13 +6,20 @@ from bs4 import BeautifulSoup
 
 
 class AlbumHandler:
-    def __init__(self, album_url, user):
-        self.__album_url = album_url
-        self.user = user
+    def __init__(self):
+        self.__album_url = ''
         self.status_code = 0
         self.__metadata = {}
 
-    def run(self):
+    def __init_metadata(self):
+        self.__album_url = ''
+        self.status_code = 0
+        self.__metadata = {}
+
+    def run(self, album_url):
+        self.__init_metadata()
+        self.__album_url = album_url
+
         response = requests.get(self.__album_url)
         self.status_code = response.status_code
         if response.status_code != 200:
@@ -35,7 +42,8 @@ class AlbumHandler:
 
         photos_list = {}
         for node in self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['edge_sidecar_to_children']['edges']:
-            photos_list[node['node']['id']] = node['node']['display_resources'][2]['src']
+            if not node['node']['is_video']:
+                photos_list[node['node']['id']] = node['node']['display_resources'][2]['src']
 
         return photos_list
 
