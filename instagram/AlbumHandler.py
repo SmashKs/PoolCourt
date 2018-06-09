@@ -41,6 +41,12 @@ class AlbumHandler:
             return {}
 
         photos_list = {}
+
+        if not ('edge_sidecar_to_children' in self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']):
+            photos_list[self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['id']] = \
+                self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['display_resources'][2]['src']
+            return photos_list
+
         for node in self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['edge_sidecar_to_children']['edges']:
             if not node['node']['is_video']:
                 photos_list[node['node']['id']] = node['node']['display_resources'][2]['src']
