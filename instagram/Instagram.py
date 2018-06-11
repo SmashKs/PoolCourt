@@ -1,6 +1,7 @@
 from instagram.InstagramRequest import InstagramRequest
 from instagram.MainPageParser import MainPageParser
 from instagram.AlbumHandler import AlbumHandler
+from firebase.FirebaseWrapper import ImageDataObj, ImageDetailObj, FirebaseWrapper
 
 
 class Instagram:
@@ -8,6 +9,7 @@ class Instagram:
         self.__request = InstagramRequest()
         self.__album_handler = AlbumHandler()
         self.__request.login(username, password)
+        self.__firebase = FirebaseWrapper().create()
 
     def __del__(self):
         self.__request.logout()
@@ -23,6 +25,11 @@ class Instagram:
         albums = main_page.run()
         for album in albums:
             self.__album_handler.run(album)
+            title = self.__album_handler.get_short_code()
             photos = self.__album_handler.get_photos()
-            for photo in photos:
-                print(photos[photo])
+            tags = self.__album_handler.get_tags()
+            likes = self.__album_handler.get_like_count()
+            author = self.__album_handler.get_author()
+            post_date = self.__album_handler.get_post_time()
+            img = ImageDetailObj(title=title, uri_list=photos, tag_list=tags, likes=likes, author=author, date=post_date)
+            self.__firebase.write_image_properties(dict(ImageDataObj(self.__album_handler.get_short_code(), img)))

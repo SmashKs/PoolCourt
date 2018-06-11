@@ -79,3 +79,9 @@ class AlbumHandler:
             return ''
 
         return self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['shortcode']
+
+    def get_author(self):
+        if len(self.__metadata) == 0:
+            return ''
+
+        return self.__metadata['entry_data']['PostPage'][0]['graphql']['shortcode_media']['owner']['username']
