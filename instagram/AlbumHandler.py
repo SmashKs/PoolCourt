@@ -54,7 +54,17 @@ class AlbumHandler:
         return photos_list
 
     def get_tags(self):
-        pass
+        response = requests.get(self.__album_url)
+        if response.status_code != 200:
+            return []
+
+        tags = {}
+        soup = BeautifulSoup(response.content.decode(), 'lxml')
+        results = soup.find_all('meta', property='instapp:hashtags')
+        for result in results:
+            tags[result['content']] = 'https://www.instagram.com/explore/tags/' + result['content']
+
+        return tags
 
     def get_comment_count(self):
         if len(self.__metadata) == 0:

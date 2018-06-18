@@ -6,6 +6,7 @@ from pyrebase.pyrebase import Auth, Database, Firebase, Storage
 
 from firebase import FIREBASE_CONFIGURATION
 from object.ImageDataObj import ImageDataObj, ImageDetailObj
+import datetime
 
 IMAGE_VERSION_1 = 'properties'
 
@@ -65,4 +66,11 @@ class FirebaseWrapper(object):
 
 if __name__ == '__main__':
     f = FirebaseWrapper().create()
-    f.write_image_properties(dict(ImageDataObj('ptt', ImageDetailObj())))
+    # f.write_image_properties(dict(ImageDataObj('ptt', ImageDetailObj())))
+    image = ImageDetailObj(title='test_title',
+                           uri_list=['https://www.google.com.tw'],
+                           tag_list=[],
+                           likes=12,
+                           author='author',
+                           date=datetime.datetime.now())
+    f.write_image_properties(dict(ImageDataObj('VivianTest', image)))
