@@ -8,7 +8,8 @@ from firebase import FIREBASE_CONFIGURATION
 from object.ImageDataObj import ImageDataObj, ImageDetailObj
 import datetime
 
-IMAGE_VERSION_1 = 'properties'
+IMAGE_VERSION_1 = 'ImageVersion1'
+IMAGE_VERSION_2 = 'ImageVersion2'
 
 
 class FirebaseWrapper(object):
@@ -51,14 +52,15 @@ class FirebaseWrapper(object):
         if self.__firebase:
             self.__firebase = None
 
-    def write_image_properties(self, image_data=None):
+    def write_image_properties(self, image_data=None, version=IMAGE_VERSION_1):
         """
         @type image_data: dict
+        @type version: int
         """
         if not isinstance(image_data, dict):
             raise TypeError('image_data should be a dict object.')
 
-        self.__firebase_database.child(IMAGE_VERSION_1).set(image_data)
+        self.__firebase_database.child(version).update(image_data)
 
     def read_image_properties(self):
         pass
