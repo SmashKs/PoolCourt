@@ -5,7 +5,7 @@ import pyrebase
 from pyrebase.pyrebase import Auth, Database, Firebase, Storage
 
 from firebase import FIREBASE_CONFIGURATION
-from object.ImageDataObj import ImageDataObj, ImageDetailObj
+from object.ImageDataObj import ImageDataObj, ImageDetailObj, ImageDetailObj2
 import datetime
 
 IMAGE_VERSION_1 = 'ImageVersion1'
@@ -52,15 +52,20 @@ class FirebaseWrapper(object):
         if self.__firebase:
             self.__firebase = None
 
-    def write_image_properties(self, image_data=None, version=IMAGE_VERSION_1):
+    def write_image_properties(self, author='', image_data=None, image_version=IMAGE_VERSION_2):
         """
+        @type author: str
         @type image_data: dict
-        @type version: int
+        @type image_version: int
         """
+
+        if len(author) == 0:
+            raise ValueError('The parameter author must have data.')
+
         if not isinstance(image_data, dict):
             raise TypeError('image_data should be a dict object.')
 
-        self.__firebase_database.child(version).update(image_data)
+        self.__firebase_database.child(image_version).child(author).update(image_data)
 
     def read_image_properties(self):
         pass
@@ -68,11 +73,13 @@ class FirebaseWrapper(object):
 
 if __name__ == '__main__':
     f = FirebaseWrapper().create()
-    # f.write_image_properties(dict(ImageDataObj('ptt', ImageDetailObj())))
-    image = ImageDetailObj(title='test_title',
-                           uri_list=['https://www.google.com.tw'],
-                           tag_list=[],
-                           likes=12,
-                           author='author',
-                           date=datetime.datetime.now())
-    f.write_image_properties(dict(ImageDataObj('VivianTest', image)))
+    image = ImageDetailObj2(author='author',
+                            title='test title',
+                            url_list={111: 'https://www.google.com.tw',
+                                      222: 'https://tw.yahoo.com.tw'},
+                            tag_list={'google': 'https://www.google.com.tw',
+                                      'yahoo': 'https://tw.yahoo.com'},
+                            likes=12,
+                            comments=100,
+                            date=datetime.datetime.now())
+    f.write_image_properties('test', dict(ImageDataObj('test2', image)), IMAGE_VERSION_2)
