@@ -56,7 +56,7 @@ class FirebaseWrapper(object):
         """
         @type author: str
         @type image_data: dict
-        @type image_version: int
+        @type image_version: str
         """
 
         if len(author) == 0:

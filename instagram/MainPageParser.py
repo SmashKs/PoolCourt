@@ -138,14 +138,14 @@ class MainPageParser:
         def update_end_cursor(self):
             if len(self.__content) == 0:
                 return
-            self.__end_cursor = self.__content['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
+            self.__end_cursor = self.__content['data']['user']['edge_user_to_photos_of_you']['page_info']['end_cursor']
 
         def get_albums(self):
             if len(self.__content) == 0:
                 return []
 
             album_list = []
-            for node in self.__content['data']['user']['edge_owner_to_timeline_media']['edges']:
+            for node in self.__content['data']['user']['edge_user_to_photos_of_you']['edges']:
                 if not node['node']['is_video']:
                     album_list.append(node['node']['shortcode'])
             return album_list
