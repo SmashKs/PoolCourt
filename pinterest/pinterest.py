@@ -83,6 +83,12 @@ class PhotoAnalyzer:
             tags[t] = 'https://www.pinterest.com/search/pins/?q=%23' + t + '&rs=hashtag_closeup'
         return tags
 
+    def get_id(self):
+        if len(self.__metadata) == 0:
+            return ''
+
+        return self.__metadata['resourceDataCache'][0]['data']['id']
+
     @staticmethod
     def __get_date(timestamp):
         month_table = {
@@ -113,6 +119,7 @@ def main():
     url = 'https://www.pinterest.com/pin/500744052297425468/'
     a = PhotoAnalyzer()
     a.run(url)
+    print('id: ' + a.get_id())
     print('title: ' + a.get_title())
     print('author: ' + a.get_author())
     print('url: ' + a.get_photo_url())
