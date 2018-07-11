@@ -71,7 +71,7 @@ class MainPageParser:
         url = INSTAGRAM + result['href']
         response = self.__requests.get(url)
         r = re.findall("queryId:\"([\w\d]+)\"", response.content.decode())
-        return r[1]
+        return r[2]
 
     def get_albums(self):
         if len(self.__metadata) == 0:
@@ -104,6 +104,9 @@ class MainPageParser:
         for album in albums:
             output.append('https://www.instagram.com/p/' + album + '/?taken-by=' + self.__username)
 
+        if not self.__metadata['entry_data']['ProfilePage'][0]['graphql']['user']['edge_owner_to_timeline_media']['page_info']['has_next_page']:
+            return output
+
         query = self.QueryPage(self.__requests, self.get_user_id(), self.get_query_hash(), self.get_end_cursor())
         while query.query():
             albums = query.get_albums()
@@ -132,20 +135,28 @@ class MainPageParser:
                 return False
 
             self.__content = json.loads(response.content.decode())
+            if not self.has_next_page():
+                return False
             self.update_end_cursor()
             return True
 
         def update_end_cursor(self):
             if len(self.__content) == 0:
                 return
-            self.__end_cursor = self.__content['data']['user']['edge_user_to_photos_of_you']['page_info']['end_cursor']
+            self.__end_cursor = self.__content['data']['user']['edge_owner_to_timeline_media']['page_info']['end_cursor']
 
         def get_albums(self):
             if len(self.__content) == 0:
                 return []
 
             album_list = []
-            for node in self.__content['data']['user']['edge_user_to_photos_of_you']['edges']:
+            for node in self.__content['data']['user']['edge_owner_to_timeline_media']['edges']:
                 if not node['node']['is_video']:
                     album_list.append(node['node']['shortcode'])
             return album_list
+
+        def has_next_page(self):
+            if len(self.__content) == 0:
+                return False
+
+            return self.__content['data']['user']['edge_owner_to_timeline_media']['page_info']['has_next_page']
