@@ -21,5 +21,5 @@ requests-toolbelt==0.8.0
 rsa==3.4.2
 selenium==3.0.2
 six==1.11.0
-urllib3==1.22
+urllib3==1.24.2
 yarg==0.1.9
