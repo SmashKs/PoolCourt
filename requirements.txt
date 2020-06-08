@@ -13,7 +13,7 @@ pipreqs==0.4.9
 protobuf==3.5.2.post1
 pyasn1==0.4.2
 pyasn1-modules==0.2.1
-pycryptodome==3.6.0
+pycryptodome==3.6.6
 Pyrebase==3.0.27
 python-jwt==2.0.1
 requests==2.18.4
